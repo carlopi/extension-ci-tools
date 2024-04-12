@@ -297,6 +297,7 @@ jobs:
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11.1
+        if: always()
         with:
           vcpkgGitCommitId: ${{ inputs.vcpkg_commit }}
 
