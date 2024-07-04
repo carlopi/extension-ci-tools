@@ -192,7 +192,7 @@ jobs:
 
       - name: Setup Ubuntu
         if: ${{ matrix.duckdb_arch == 'linux_amd64' || matrix.duckdb_arch == 'linux_arm64' }}
-        uses: ./.github/actions/ubuntu_18_setup
+        uses: ./extension-ci-tools/.github/actions/ubuntu_18_setup
         with:
           aarch64_cross_compile: ${{ matrix.duckdb_arch == 'linux_arm64' && 1 }}
 
