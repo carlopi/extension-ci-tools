@@ -262,6 +262,7 @@ jobs:
           make test
 
       - uses: actions/upload-artifact@v2
+        if: false
         with:
           name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
           path: |
