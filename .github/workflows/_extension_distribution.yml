@@ -48,7 +48,7 @@ on:
       enable_rust:
         required: false
         type: boolean
-        default: false
+        default: true
       # Supply an override repository to build, instead of using the current one
       override_repository:
         required: false
@@ -261,8 +261,7 @@ jobs:
         run: |
           make test
 
-      - uses: actions/upload-artifact@v2
-        container: ubuntu-latest
+      - uses: actions/upload-artifact@v1
         with:
           name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
           path: |
