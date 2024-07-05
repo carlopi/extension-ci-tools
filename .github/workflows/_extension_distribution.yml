@@ -147,8 +147,7 @@ jobs:
     steps:
       - name: Install required ubuntu packages
         run: |
-          if [[ "${DUCKDB_PLATFORM}" = "linux_amd64_gcc4" ]]; then
-          else
+          if [[ "${DUCKDB_PLATFORM}" != "linux_amd64_gcc4" ]]; then
             apt-get update -y -qq
             apt-get install -y -qq software-properties-common
             add-apt-repository ppa:git-core/ppa
@@ -158,8 +157,7 @@ jobs:
 
       - name: Install Git 2.18.5
         run: |
-          if [[ "${DUCKDB_PLATFORM}" = "linux_amd64_gcc4" ]]; then
-          else
+          if [[ "${DUCKDB_PLATFORM}" != "linux_amd64_gcc4" ]]; then
             wget https://github.com/git/git/archive/refs/tags/v2.18.5.tar.gz
             tar xvf v2.18.5.tar.gz
             cd git-2.18.5
@@ -221,12 +219,10 @@ jobs:
 
       - name: Setup Rust for manylinux (dtolnay/rust-toolchain doesn't work due to curl being old here)
         run: |
-          if [ -z "${ENABLE_RUST}" ]; then
-          else
+          if [ -n "${ENABLE_RUST}" ]; then
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
             echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-            if [ -z "${RUST_TARGET}" ]; then
-            else
+            if [ -n "${RUST_TARGET}" ]; then
               $HOME/.cargo/bin/rustup target add $RUST_TARGET
             fi
           fi
@@ -248,8 +244,7 @@ jobs:
 
       - name: Configure OpenSSL for Rust
         run: |
-          if [ -z "${ENABLE_RUST}" ]; then
-          else
+          if [ -n "${ENABLE_RUST}" ]; then
             echo "OPENSSL_ROOT_DIR=`pwd`/build/release/vcpkg_installed/${{ matrix.vcpkg_triplet }}" >> $GITHUB_ENV
             echo "OPENSSL_DIR=`pwd`/build/release/vcpkg_installed/${{ matrix.vcpkg_triplet }}" >> $GITHUB_ENV
             echo "OPENSSL_USE_STATIC_LIBS=true" >> $GITHUB_ENV
@@ -261,8 +256,7 @@ jobs:
 
       - name: Test extension
         run: |
-          if [ -z "${RUN_TESTS}" ]; then
-          else
+          if [ -n "${RUN_TESTS}" ]; then
             make test
           fi
 
