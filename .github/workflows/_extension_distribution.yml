@@ -266,11 +266,11 @@ jobs:
             make test
           fi
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
-          path: |
-            build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
+#      - uses: actions/upload-artifact@v3
+#        with:
+#          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}
+#          path: |
+#            build/release/extension/${{ inputs.extension_name }}/${{ inputs.extension_name }}.duckdb_extension
 
   macos:
     name: MacOS
