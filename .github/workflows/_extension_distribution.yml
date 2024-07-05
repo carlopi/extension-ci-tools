@@ -157,7 +157,7 @@ jobs:
 
       - name: Install Git 2.18.5
         run: |
-          if [[ "${DUCKDB_PLATFORM}" != "linux_amd64_gcc4" ]]; then
+          if [ "${DUCKDB_PLATFORM}" != "linux_amd64_gcc4" ]; then
             wget https://github.com/git/git/archive/refs/tags/v2.18.5.tar.gz
             tar xvf v2.18.5.tar.gz
             cd git-2.18.5
@@ -167,7 +167,6 @@ jobs:
           fi
 
       - name: Checkout
-        shell: bash
         run: |
           git init
           git config --global --add safe.directory $(pwd)
@@ -195,7 +194,7 @@ jobs:
 
       - name: Setup ManyLinux2014
         run: |
-          if [[ "${DUCKDB_PLATFORM}" = "linux_amd64_gcc4" ]]; then
+          if [ "${DUCKDB_PLATFORM}" = "linux_amd64_gcc4" ]; then
             ./duckdb/scripts/setup_manylinux2014.sh general aws-cli ccache ssh python_alias openssl vcpkg
           else
             // env is AARCH64_CROSS_COMPILE
