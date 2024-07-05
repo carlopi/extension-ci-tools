@@ -209,21 +209,16 @@ jobs:
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
 
-      - name: Setup Rust
-        if: ${{ inputs.enable_rust && matrix.duckdb_arch == 'linux_amd64'}}
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Setup Rust for cross compilation
-        if: ${{ inputs.enable_rust && matrix.duckdb_arch == 'linux_arm64'}}
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-unknown-linux-gnu
-
       - name: Setup Rust for manylinux (dtolnay/rust-toolchain doesn't work due to curl being old here)
-        if: ${{ inputs.enable_rust && matrix.duckdb_arch == 'linux_amd64_gcc4' }}
+        if: ${{ inputs.enable_rust }}
+        env:
+          TARGETS: ${{ matrix.duckdb_arch == 'linux_arm64' && 'aarch64-unknown-linux-gnu' }}
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          if [ -z "${TARGET}" ]; then
+            rustup target add $TARGET
+          fi
 
       - name: Setup Ccache
         uses: hendrikmuhs/ccache-action@v1.2.11 # Note: pinned due to GLIBC incompatibility in later releases
