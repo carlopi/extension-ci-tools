@@ -76,6 +76,10 @@ on:
         required: false
         type: boolean
         default: false
+
+env:
+  DUCKDB_DEFAULT_VERSION: ${{ inputs.duckdb_version }}
+
 jobs:
   generate_matrix:
     name: Generate matrix
@@ -104,6 +108,7 @@ jobs:
 
       - name: Checkout DuckDB to version
         run: |
+          make duckdb
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
 
@@ -227,6 +232,7 @@ jobs:
 
       - name: Checkout DuckDB to version
         run: |
+          make duckdb
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
 
@@ -345,6 +351,7 @@ jobs:
 
       - name: Checkout DuckDB to version
         run: |
+          make duckdb
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
 
@@ -442,6 +449,7 @@ jobs:
 
       - name: Checkout DuckDB to version
         run: |
+          make duckdb
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
 
@@ -510,6 +518,7 @@ jobs:
 
       - name: Checkout DuckDB to version
         run: |
+          make duckdb
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
 
