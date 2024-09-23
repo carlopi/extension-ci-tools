@@ -19,7 +19,7 @@ jobs:
       extension_name: quack
       override_repository: duckdb/extension-template
       override_ref: main
-      duckdb_version: main
+      duckdb_version: af39bd0dcf66876e09ac2a7c3baa28fe1b301151
       duckdb_tag: v1.2.0
       extension_tag: v10.0.0
       override_ci_tools_repository: ${{ github.repository }}
