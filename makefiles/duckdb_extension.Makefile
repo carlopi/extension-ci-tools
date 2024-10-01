@@ -11,7 +11,7 @@
 
 all: release
 
-TEST_PATH="/test/unittest"
+TEST_PATH=/test/unittest
 DUCKDB_PATH="/duckdb"
 
 DUCKDB_SRCDIR ?= "./duckdb/"
@@ -19,7 +19,7 @@ DUCKDB_SRCDIR ?= "./duckdb/"
 # For non-MinGW windows the path is slightly different
 ifeq ($(OS),Windows_NT)
 ifneq ($(CXX),g++)
-	TEST_PATH="/test/Release/unittest.exe"
+	TEST_PATH=/test/Release/unittest.exe
 	DUCKDB_PATH="/Release/duckdb.exe"
 endif
 endif
@@ -60,17 +60,17 @@ EXTENSION_FLAGS=-DDUCKDB_EXTENSION_CONFIGS='${EXT_CONFIG}'
 
 BUILD_FLAGS=-DEXTENSION_STATIC_BUILD=1 $(EXTENSION_FLAGS) ${EXT_FLAGS} $(CORE_EXTENSION_VAR) $(OSX_BUILD_FLAG) $(RUST_FLAGS) $(TOOLCHAIN_FLAGS) -DDUCKDB_EXPLICIT_PLATFORM='${DUCKDB_PLATFORM}' -DCUSTOM_LINKER=${CUSTOM_LINKER}
 
-debug:
+debug build/debug/$(TEST_PATH):
 	mkdir -p  build/debug
 	cmake $(GENERATOR) $(BUILD_FLAGS) $(EXT_DEBUG_FLAGS) -DCMAKE_BUILD_TYPE=Debug -S $(DUCKDB_SRCDIR) -B build/debug
 	cmake --build build/debug --config Debug
 
-release:
+release build/release/$(TEST_PATH):
 	mkdir -p build/release
 	cmake $(GENERATOR) $(BUILD_FLAGS) $(EXT_RELEASE_FLAGS) -DCMAKE_BUILD_TYPE=Release -S $(DUCKDB_SRCDIR) -B build/release
 	cmake --build build/release --config Release
 
-reldebug:
+reldebug build/reldebug/$(TEST_PATH):
 	mkdir -p build/reldebug
 	cmake $(GENERATOR) $(BUILD_FLAGS) $(EXT_RELEASE_FLAGS) -DCMAKE_BUILD_TYPE=RelWithDebInfo -S $(DUCKDB_SRCDIR) -B build/reldebug
 	cmake --build build/reldebug
@@ -78,13 +78,13 @@ reldebug:
 # Main tests
 test: test_release
 
-test_release: release
+test_release: build/release/$(TEST_PATH)
 	./build/release/$(TEST_PATH) "$(PROJ_DIR)test/*"
 
-test_debug: debug
+test_debug: build/debug/$(TEST_PATH)
 	./build/debug/$(TEST_PATH) "$(PROJ_DIR)test/*"
 
-test_reldebug: reldebug
+test_reldebug: build/reldebug/$(TEST_PATH)
 	./build/reldebug/$(TEST_PATH) "$(PROJ_DIR)test/*"
 
 # WASM config
