@@ -30,13 +30,6 @@ CMAKE_BUILD_FLAGS = $(CMAKE_VERSION_PARAMS) $(CMAKE_EXTRA_BUILD_FLAGS)
 ### Vcpkg
 #############################################
 
-ifneq ("${VCPKG_TOOLCHAIN_PATH}", "")
-	CMAKE_BUILD_FLAGS += -DCMAKE_TOOLCHAIN_FILE='${VCPKG_TOOLCHAIN_PATH}'
-endif
-ifneq ("${VCPKG_TARGET_TRIPLET}", "")
-	CMAKE_BUILD_FLAGS += -DVCPKG_TARGET_TRIPLET='${VCPKG_TARGET_TRIPLET}'
-endif
-
 #############################################
 ### Ninja
 #############################################
