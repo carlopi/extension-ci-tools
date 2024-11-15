@@ -72,11 +72,13 @@ ifeq ($(MINGW),1)
 endif
 
 CMAKE_WRAPPER=
+CMAKE_BUILD = cmake --build
 EXTRA_CMAKE_FLAGS ?=
 
 ifneq ($(DUCKDB_WASM_PLATFORM),)
+	CMAKE_BUILD = $(MAKE_INVOCATION) -C
 	CMAKE_WRAPPER=emcmake
-	EXTRA_CMAKE_FLAGS += -DCMAKE_C_FLAGS="$(CMAKE_C_FLAGS) -fPIC"
+	EXTRA_CMAKE_FLAGS += -DCMAKE_C_FLAGS="$(CMAKE_C_FLAGS) -fPIC -DDUCKDB_WASM_EXTENSION=1"
 	ifeq ($(DUCKDB_WASM_PLATFORM), 'wasm_eh')
 		EXTRA_CMAKE_FLAGS += -DCMAKE_CXX_FLAGS="$(CMAKE_CXX_FLAGS) -fPIC"
 	endif
@@ -94,14 +96,14 @@ endif
 
 build_extension_library_debug: check_configure
 	$(CMAKE_WRAPPER) cmake $(CMAKE_BUILD_FLAGS) -DCMAKE_BUILD_TYPE=Debug -S $(PROJ_DIR) -B cmake_build/debug $(EXTRA_CMAKE_FLAGS)
-	$(MAKE_INVOCATION) -C cmake_build/debug
+	$(CMAKE_BUILD) cmake_build/debug
 	$(EXTRA_COPY_STEP_DEBUG)
 	$(PYTHON_VENV_BIN) -c "from pathlib import Path;Path('./build/$(DUCKDB_WASM_PLATFORM)/debug/extension/$(EXTENSION_NAME)').mkdir(parents=True, exist_ok=True)"
 	$(PYTHON_VENV_BIN) -c "import shutil;shutil.copyfile('$(OUTPUT_LIB_PATH_DEBUG)', 'build/$(DUCKDB_WASM_PLATFORM)/debug/$(EXTENSION_LIB_FILENAME)')"
 
 build_extension_library_release: check_configure
 	$(CMAKE_WRAPPER) cmake $(CMAKE_BUILD_FLAGS) -DCMAKE_BUILD_TYPE=Release -S $(PROJ_DIR) -B cmake_build/release $(EXTRA_CMAKE_FLAGS)
-	$(MAKE_INVOCATION) -C cmake_build/release
+	$(CMAKE_BUILD) cmake_build/release
 	$(EXTRA_COPY_STEP_RELEASE)
 	$(PYTHON_VENV_BIN) -c "from pathlib import Path;Path('./build/$(DUCKDB_WASM_PLATFORM)/release/extension/$(EXTENSION_NAME)').mkdir(parents=True, exist_ok=True)"
 	$(PYTHON_VENV_BIN) -c "import shutil;shutil.copyfile('$(OUTPUT_LIB_PATH_RELEASE)', 'build/$(DUCKDB_WASM_PLATFORM)/release/$(EXTENSION_LIB_FILENAME)')"
