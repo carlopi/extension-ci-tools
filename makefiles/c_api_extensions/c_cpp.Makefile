@@ -65,8 +65,8 @@ ifeq ($(MINGW),1)
 endif
 
 CMAKE_WRAPPER=
-CMAKE_BUILD_DEBUG = cmake --config Debug --build cmake_build/debug
-CMAKE_BUILD_RELEASE = cmake --config Release --build cmake_build/release
+CMAKE_BUILD_DEBUG = cmake --build cmake_build/debug --config Debug
+CMAKE_BUILD_RELEASE = cmake --build cmake_build/release --config Release
 EXTRA_CMAKE_FLAGS ?=
 
 ifneq ($(DUCKDB_WASM_PLATFORM),)
