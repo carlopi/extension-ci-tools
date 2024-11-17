@@ -43,7 +43,7 @@ endif
 EXTENSION_FILENAME=$(EXTENSION_NAME).duckdb_extension
 EXTENSION_FILENAME_NO_METADATA=$(EXTENSION_LIB_FILENAME)
 
-DUCKDB_WASM_PLATFORM=$(filter wasm_mvp wasm_eh wasm_threads,$(DUCKDB_PLATFORM))
+DUCKDB_WASM_PLATFORM=$(filter wasm_mvp wasm_eh wasm_coi,$(DUCKDB_PLATFORM))
 
 ifneq ($(DUCKDB_WASM_PLATFORM),)
 	EXTENSION_FILENAME=$(EXTENSION_NAME).duckdb_extension.wasm
