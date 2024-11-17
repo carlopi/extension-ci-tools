@@ -249,10 +249,10 @@ move_wasm_extension:
 	$(PYTHON_VENV_BIN) -c "import shutil;shutil.copyfile('build/$(DUCKDB_WASM_PLATFORM)/release/extension/$(EXTENSION_NAME)/$(EXTENSION_FILENAME)', 'build/$(DUCKDB_WASM_PLATFORM)/extension/$(EXTENSION_NAME)/$(EXTENSION_FILENAME)')"
 
 wasm_mvp:
-	DUCKDB_PLATFORM=wasm_mvp make configure release move_wasm_extension
+	DUCKDB_PLATFORM=wasm_mvp $(MAKE) configure release move_wasm_extension
 
 wasm_eh:
-	DUCKDB_PLATFORM=wasm_eh make configure release move_wasm_extension
+	DUCKDB_PLATFORM=wasm_eh $(MAKE) configure release move_wasm_extension
 
 wasm_threads:
-	DUCKDB_PLATFORM=wasm_coi make configure release move_wasm_extension
+	DUCKDB_PLATFORM=wasm_coi $(MAKE) configure release move_wasm_extension
