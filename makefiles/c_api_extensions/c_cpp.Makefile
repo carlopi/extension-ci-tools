@@ -65,13 +65,13 @@ ifeq ($(MINGW),1)
 endif
 
 CMAKE_WRAPPER=
-CMAKE_BUILD_RELEASE = cmake --config Release --build cmake_build/release
 CMAKE_BUILD_DEBUG = cmake --config Debug --build cmake_build/debug
+CMAKE_BUILD_RELEASE = cmake --config Release --build cmake_build/release
 EXTRA_CMAKE_FLAGS ?=
 
 ifneq ($(DUCKDB_WASM_PLATFORM),)
-	CMAKE_BUILD_RELEASE = $(MAKE_INVOCATION) -C cmake_build/debug
-	CMAKE_BUILD_DEBUG = $(MAKE_INVOCATION) -C cmake_build/release
+	CMAKE_BUILD_DEBUG = $(MAKE_INVOCATION) -C cmake_build/debug
+	CMAKE_BUILD_RELEASE = $(MAKE_INVOCATION) -C cmake_build/release
 	CMAKE_WRAPPER=emcmake
 	EXTRA_CMAKE_FLAGS += -DCMAKE_C_FLAGS="$(CMAKE_C_FLAGS) -fPIC -DDUCKDB_WASM_EXTENSION=1"
 	ifeq ($(DUCKDB_WASM_PLATFORM), 'wasm_eh')
