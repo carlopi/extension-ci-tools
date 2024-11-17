@@ -43,7 +43,7 @@ endif
 EXTENSION_FILENAME=$(EXTENSION_NAME).duckdb_extension
 EXTENSION_FILENAME_NO_METADATA=$(EXTENSION_LIB_FILENAME)
 
-DUCKDB_WASM_PLATFORM=$(filter wasm_mvp wasm_eh wasm_coi,$(DUCKDB_PLATFORM))
+DUCKDB_WASM_PLATFORM=$(filter wasm_mvp wasm_eh wasm_threads,$(DUCKDB_PLATFORM))
 
 ifneq ($(DUCKDB_WASM_PLATFORM),)
 	EXTENSION_FILENAME=$(EXTENSION_NAME).duckdb_extension.wasm
@@ -255,4 +255,4 @@ wasm_eh:
 	DUCKDB_PLATFORM=wasm_eh make configure release move_wasm_extension
 
 wasm_threads:
-	DUCKDB_PLATFORM=wasm_coi make configure release move_wasm_extension
+	DUCKDB_PLATFORM=wasm_threads make configure release move_wasm_extension
