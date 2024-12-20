@@ -8,7 +8,7 @@ FROM alpine:3
 RUN apk update --y -qq
 # RUN apk add -y -qq software-properties-common gcc-multilib g++-multilib
 RUN apk add  -qq ccache cmake git
-RUN apk add  -qq make gcc samurai
+RUN apk add  -qq make gcc samura
 RUN apk add  -qq make libssl3
 RUN apk add  -qq make  wget bash
 RUN apk add  -qq make wget zip
@@ -29,7 +29,6 @@ ENV VCPKG_ROOT=/vcpkg
 ENV VCPKG_TOOLCHAIN_PATH=/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 # Common environment variables
-ENV GEN=ninja
 
 # Specify where we expect the extension to be mounted and use that as working dir
 VOLUME /duckdb_build_dir
