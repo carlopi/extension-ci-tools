@@ -7,8 +7,8 @@ FROM alpine:3
 # Setup the basic necessities
 RUN apk update --y -qq
 # RUN apk add -y -qq software-properties-common gcc-multilib g++-multilib
-RUN apk add  -qq ccache cmake git
-RUN apk add  -qq make gcc samurai
+RUN apk add  -qq ccache cmake git ninja-build
+RUN apk add  -qq make gcc
 RUN apk add  -qq make libssl3
 RUN apk add  -qq make  wget bash
 RUN apk add  -qq make wget zip
