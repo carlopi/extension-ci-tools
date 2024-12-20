@@ -18,7 +18,7 @@
       },
       {
         "duckdb_arch": "musllinux_amd64",
-        "container": "alpine:18.04",
+        "container": "alpine:3",
         "vcpkg_triplet": "x64-linux"
       }
     ]
