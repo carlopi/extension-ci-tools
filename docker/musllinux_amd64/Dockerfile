@@ -76,7 +76,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Configure go
 RUN case "$extra_toolchains" in \
   *\;go\;*) \
-    apk add -y -qq golang-go \
+    apk add -y -qq go \
   ;; \
 esac
 ENV PATH="/usr/local/go/bin:${PATH}"
