@@ -61,7 +61,7 @@ esac
 # Install Fortran
 RUN case "$extra_toolchains" in \
   *\;fortran\;*) \
-    apk add -y -qq gfortran gfortran-aarch64-linux-gnu \
+    apk add -y -qq gfortran \
   ;; \
 esac
 
