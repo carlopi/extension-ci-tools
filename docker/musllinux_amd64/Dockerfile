@@ -9,11 +9,11 @@ RUN apk update -y -qq
 # RUN apk add -y -qq software-properties-common gcc-multilib g++-multilib
 RUN apk add -y -qq ccache cmake git
 RUN apk add -y -qq ninja-build make
-RUN apk add -y -qq ninja-build make libssl-dev
-RUN apk add -y -qq ninja-build make libssl-dev wget
-RUN apk add -y -qq ninja-build make libssl-dev wget zip
-RUN apk add -y -qq ninja-build make libssl-dev wget zip libssl-dev gettext unzip build-essential
-RUN apk add -y -qq ninja-build make libssl-dev wget zip libssl-dev gettext unzip build-essential checkinstall libffi-dev curl libz-dev openssh-client pkg-config autoconf
+RUN apk add -y -qq ninja-build make libssl3
+RUN apk add -y -qq ninja-build make  wget
+RUN apk add -y -qq ninja-build make wget zip
+RUN apk add -y -qq ninja-build make  wget zip  gettext unzip build-essential
+RUN apk add -y -qq ninja-build make wget zip gettext unzip build-essential checkinstall libffi-dev curl libz-dev openssh-client pkg-config autoconf
 
 # Setup VCPKG n a mounted volume TODO: figure out how to cache this
 ARG vcpkg_url
