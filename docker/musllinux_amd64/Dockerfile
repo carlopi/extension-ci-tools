@@ -8,7 +8,7 @@ FROM alpine:3
 RUN apk update -y -qq
 # RUN apk add -y -qq software-properties-common gcc-multilib g++-multilib
 RUN apk add -y -qq ccache cmake git
-RUN apk add -y -qq ninja-build make
+RUN apk add -y -qq ninja-build make gcc
 RUN apk add -y -qq ninja-build make libssl3
 RUN apk add -y -qq ninja-build make  wget bash
 RUN apk add -y -qq ninja-build make wget zip
