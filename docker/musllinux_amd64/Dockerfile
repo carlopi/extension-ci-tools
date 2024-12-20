@@ -54,14 +54,14 @@ ARG extra_toolchains
 # Install Parser tools
 RUN case "$extra_toolchains" in \
   *\;parser_tools\;*) \
-    apt-get install -y -qq bison flex \
+    apk add -y -qq bison flex \
   ;; \
 esac
 
 # Install Fortran
 RUN case "$extra_toolchains" in \
   *\;fortran\;*) \
-    apt-get install -y -qq gfortran gfortran-aarch64-linux-gnu \
+    apk add -y -qq gfortran gfortran-aarch64-linux-gnu \
   ;; \
 esac
 
@@ -84,6 +84,6 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 # Install Python3
 RUN case "$extra_toolchains" in \
   *\;python3\;*) \
-    apk add install -y -qq python3 \
+    apk add -y -qq python3 \
   ;; \
 esac
