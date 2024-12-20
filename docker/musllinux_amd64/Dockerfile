@@ -5,15 +5,15 @@ FROM alpine:3
 ###
 
 # Setup the basic necessities
-RUN apk update -y -qq
+RUN apk update --y -qq
 # RUN apk add -y -qq software-properties-common gcc-multilib g++-multilib
-RUN apk add -y -qq ccache cmake git
-RUN apk add -y -qq make gcc samurai
-RUN apk add -y -qq make libssl3
-RUN apk add -y -qq make  wget bash
-RUN apk add -y -qq make wget zip
-RUN apk add -y -qq make  wget zip  gettext unzip build-base cmake ninja zip unzip curl git musl-tools
-RUN apk add -y -qq make wget zip gettext unzip  libffi-dev curl zlib openssh autoconf
+RUN apk add  -qq ccache cmake git
+RUN apk add  -qq make gcc samurai
+RUN apk add  -qq make libssl3
+RUN apk add  -qq make  wget bash
+RUN apk add  -qq make wget zip
+RUN apk add -qq make  wget zip  gettext unzip build-base cmake zip unzip curl git
+RUN apk add -qq make wget zip gettext unzip  libffi-dev curl zlib openssh autoconf
 
 # Setup VCPKG n a mounted volume TODO: figure out how to cache this
 ARG vcpkg_url
