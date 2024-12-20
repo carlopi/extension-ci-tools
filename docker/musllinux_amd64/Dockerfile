@@ -10,7 +10,7 @@ RUN apk update -y -qq
 RUN apk add -y -qq ccache cmake git
 RUN apk add -y -qq ninja-build make
 RUN apk add -y -qq ninja-build make libssl3
-RUN apk add -y -qq ninja-build make  wget
+RUN apk add -y -qq ninja-build make  wget bash
 RUN apk add -y -qq ninja-build make wget zip
 RUN apk add -y -qq ninja-build make  wget zip  gettext unzip build-base cmake ninja zip unzip curl git
 RUN apk add -y -qq ninja-build make wget zip gettext unzip  libffi-dev curl zlib openssh autoconf
