@@ -12,7 +12,7 @@ RUN apk add -y -qq ninja-build make
 RUN apk add -y -qq ninja-build make libssl3
 RUN apk add -y -qq ninja-build make  wget
 RUN apk add -y -qq ninja-build make wget zip
-RUN apk add -y -qq ninja-build make  wget zip  gettext unzip
+RUN apk add -y -qq ninja-build make  wget zip  gettext unzip build-base cmake ninja zip unzip curl git
 RUN apk add -y -qq ninja-build make wget zip gettext unzip  libffi-dev curl zlib openssh autoconf
 
 # Setup VCPKG n a mounted volume TODO: figure out how to cache this
