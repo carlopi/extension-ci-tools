@@ -6,9 +6,9 @@ FROM alpine:3
 
 # Setup the basic necessities
 RUN apk update -y -qq
-# RUN apk add -y -qq software-properties-common
+# RUN apk add -y -qq software-properties-common gcc-multilib g++-multilib
 RUN apk add -y -qq ccache cmake git
-RUN apk add -y -qq --fix-missing ninja-build make gcc-multilib g++-multilib libssl-dev wget openjdk-8-jdk zip maven unixodbc-dev libc6-dev-i386 lib32readline6-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext unzip build-essential checkinstall libffi-dev curl libz-dev openssh-client pkg-config autoconf
+RUN apk add -y -qq --fix-missing ninja-build make libssl-dev wget zip mave libssl-dev gettext unzip build-essential checkinstall libffi-dev curl libz-dev openssh-client pkg-config autoconf
 
 # Setup VCPKG n a mounted volume TODO: figure out how to cache this
 ARG vcpkg_url
