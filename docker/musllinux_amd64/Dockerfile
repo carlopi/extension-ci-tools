@@ -12,8 +12,8 @@ RUN apk add -y -qq ninja-build make
 RUN apk add -y -qq ninja-build make libssl3
 RUN apk add -y -qq ninja-build make  wget
 RUN apk add -y -qq ninja-build make wget zip
-RUN apk add -y -qq ninja-build make  wget zip  gettext unzip build-essential
-RUN apk add -y -qq ninja-build make wget zip gettext unzip build-essential checkinstall libffi-dev curl libz-dev openssh-client pkg-config autoconf
+RUN apk add -y -qq ninja-build make  wget zip  gettext unzip
+RUN apk add -y -qq ninja-build make wget zip gettext unzip  libffi-dev curl libz-dev openssh autoconf
 
 # Setup VCPKG n a mounted volume TODO: figure out how to cache this
 ARG vcpkg_url
