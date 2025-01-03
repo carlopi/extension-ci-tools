@@ -50,7 +50,7 @@ jobs:
       extra_toolchains: 'rust;python3'
       exclude_archs: 'windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl' # TODO: remove once fixed upstream
 
-  extension-template-capi:
+  extension-template-capi-main:
     name: Extension template (C API)
     uses: ./.github/workflows/_extension_distribution.yml
     with:
@@ -63,7 +63,7 @@ jobs:
       extra_toolchains: 'python3'
       exclude_archs: 'linux_amd64_musl'
 
-  extension-template-rust:
+  extension-template-rust-main:
     name: Extension template (Rust)
     uses: ./.github/workflows/_extension_distribution.yml
     with:
