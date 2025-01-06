@@ -37,7 +37,7 @@ endif
 
 # The minimum DuckDB version that this extension supports
 ifeq ($(MINIMUM_DUCKDB_VERSION),)
-	MINIMUM_DUCKDB_VERSION = v0.0.1
+	MINIMUM_DUCKDB_VERSION = v1.2.0
 endif
 
 EXTENSION_FILENAME=$(EXTENSION_NAME).duckdb_extension
