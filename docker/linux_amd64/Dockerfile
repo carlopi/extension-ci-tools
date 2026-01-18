@@ -108,6 +108,6 @@ esac
 # Install debug tools
 RUN case "$extra_toolchains" in \
   *\;sanitizers\;*) \
-    yum install -y libasan libubsan \
+    yum install -y gcc-toolset-14-libasan-devel gcc-toolset-14-libubsan-devel \
   ;; \
 esac
