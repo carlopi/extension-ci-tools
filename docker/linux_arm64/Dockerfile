@@ -106,3 +106,10 @@ RUN case "$extra_toolchains" in \
     yum install -y unixODBC-devel \
   ;; \
 esac
+
+# Install debug tools
+RUN case "$extra_toolchains" in \
+  *\;sanitizers\;*) \
+    yum install -y libasan libubsan \
+  ;; \
+esac
