@@ -79,6 +79,7 @@ jobs:
       build_type: debug
       upload_all_extensions: true
       extensions_test_selection: complete
+      exclude_archs: "linux_amd64_musl"
       extra_extension_config: |
         duckdb_extension_load(json)
         duckdb_extension_load(tpch)

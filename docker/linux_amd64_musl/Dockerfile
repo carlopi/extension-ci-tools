@@ -98,10 +98,3 @@ RUN case "$extra_toolchains" in \
     apk add -qq unixodbc-dev \
   ;; \
 esac
-
-# Install debug tools
-RUN case "$extra_toolchains" in \
-  *\;sanitizers\;*) \
-    apk add -qq libasan libubsan \
-  ;; \
-esac
