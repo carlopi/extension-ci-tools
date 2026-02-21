@@ -218,7 +218,7 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
   linux:
-    name: Linux ("${{ matrix.duckdb_arch || '-'}}")
+    name: Linux (${{ ${{matrix.duckdb_arch}} || '-'}})
     runs-on: ${{ matrix.runner }}
     needs: generate_matrix
     if: ${{ needs.generate_matrix.outputs.linux_matrix != '{}' && needs.generate_matrix.outputs.linux_matrix != '' }}
@@ -485,7 +485,7 @@ jobs:
           done
 
   macos:
-    name: MacOS ("${{ matrix.duckdb_arch || '-'}}")
+    name: MacOS (${{ ${{matrix.duckdb_arch}} || '-'}})
     runs-on: macos-latest
     needs:
       - generate_matrix
