@@ -72,11 +72,6 @@ on:
         required: false
         type: string
         default: ''
-      # Override the default script producing the matrices. Allows specifying custom matrices.
-      matrix_parse_script:
-        required: false
-        type: string
-        default: "./extension-ci-tools/scripts/modify_distribution_matrix.py"
       # Enable building the DuckDB Shell
       build_duckdb_shell:
         required: false
@@ -176,19 +171,48 @@ on:
         required: false
         type: string
         default: 'regular'
+      runners:
+        required: false
+        type: string
+        default: '{}'
+      post_build_command:
+        required: false
+        type: string
+        default: ""
+      # Override vcpkg overlay ports directory (relative to repo root, mounted at /duckdb_build_dir in Docker)
+      vcpkg_overlay_ports:
+        required: false
+        type: string
+        default: 'extension-ci-tools/vcpkg_ports'
+      # Override vcpkg overlay triplets directory
+      vcpkg_overlay_triplets:
+        required: false
+        type: string
+        default: 'extension-ci-tools/toolchains'
+      # CUDA GPU architectures to build for (e.g. "75;80;86;90a"). Empty disables CUDA arch specification.
+      cuda_archs:
+        required: false
+        type: string
+        default: ''
+      # CUDA version for vcpkg ports that need version-specific binaries
+      cuda_version:
+        required: false
+        type: string
+        default: '13'
 
 env:
   VCPKG_BINARY_SOURCES: ${{inputs.vcpkg_binary_sources == '' && 'clear;http,https://vcpkg-cache.duckdb.org,read' || inputs.vcpkg_binary_sources }}
+  USE_DEFAULT_RUNNERS: ${{ inputs.runners == '{}' }}
 
 jobs:
   generate_matrix:
     name: Generate matrix
     runs-on: ubuntu-latest
     outputs:
-      linux_matrix: ${{ steps.set-matrix-linux.outputs.linux_matrix }}
-      windows_matrix: ${{ steps.set-matrix-windows.outputs.windows_matrix }}
-      osx_matrix: ${{ steps.set-matrix-osx.outputs.osx_matrix }}
-      wasm_matrix: ${{ steps.set-matrix-wasm.outputs.wasm_matrix }}
+      linux_matrix: ${{ steps.compute-matrix.outputs.linux_matrix }}
+      windows_matrix: ${{ steps.compute-matrix.outputs.windows_matrix }}
+      osx_matrix: ${{ steps.compute-matrix.outputs.osx_matrix }}
+      wasm_matrix: ${{ steps.compute-matrix.outputs.wasm_matrix }}
     steps:
       - uses: actions/checkout@v4
         name: Checkout Extension CI tools
@@ -197,44 +221,39 @@ jobs:
           ref: ${{ inputs.ci_tools_version }}
           repository: ${{ inputs.override_ci_tools_repository }}
 
-      - id: parse-matrices
-        run: |
-          mkdir build
-          python3 ${{ inputs.matrix_parse_script }} --input extension-ci-tools/config/distribution_matrix.json --select_os linux   --output build/linux_matrix.json   --exclude "${{ inputs.exclude_archs }}" --opt_in "${{ inputs.opt_in_archs }}" --pretty --reduced_ci_mode ${{ inputs.reduced_ci_mode }}
-          python3 ${{ inputs.matrix_parse_script }} --input extension-ci-tools/config/distribution_matrix.json --select_os osx     --output build/osx_matrix.json     --exclude "${{ inputs.exclude_archs }}" --opt_in "${{ inputs.opt_in_archs }}" --pretty --reduced_ci_mode ${{ inputs.reduced_ci_mode }}
-          python3 ${{ inputs.matrix_parse_script }} --input extension-ci-tools/config/distribution_matrix.json --select_os windows --output build/windows_matrix.json --exclude "${{ inputs.exclude_archs }}" --opt_in "${{ inputs.opt_in_archs }}" --pretty --reduced_ci_mode ${{ inputs.reduced_ci_mode }}
-          python3 ${{ inputs.matrix_parse_script }} --input extension-ci-tools/config/distribution_matrix.json --select_os wasm    --output build/wasm_matrix.json    --exclude "${{ inputs.exclude_archs }}" --opt_in "${{ inputs.opt_in_archs }}" --pretty --reduced_ci_mode ${{ inputs.reduced_ci_mode }}
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: extension-ci-tools/scripts/extbuild/go.mod
+          cache: true
+          cache-dependency-path: extension-ci-tools/scripts/extbuild/go.sum
 
-      - id: set-matrix-linux
+      - name: Dump event path file
         run: |
-          linux_matrix="`cat build/linux_matrix.json`"
-          echo linux_matrix=$linux_matrix >> $GITHUB_OUTPUT
-          echo `cat $GITHUB_OUTPUT`
+          echo "$GITHUB_EVENT_PATH"
+          cat "$GITHUB_EVENT_PATH"
 
-      - id: set-matrix-osx
+      - id: compute-matrix
+        name: Compute extension build matrix
         run: |
-          osx_matrix="`cat build/osx_matrix.json`"
-          echo osx_matrix=$osx_matrix >> $GITHUB_OUTPUT
-          echo `cat $GITHUB_OUTPUT`
-
-      - id: set-matrix-windows
-        run: |
-          windows_matrix="`cat build/windows_matrix.json`"
-          echo windows_matrix=$windows_matrix >> $GITHUB_OUTPUT
-          echo `cat $GITHUB_OUTPUT`
-
-      - id: set-matrix-wasm
-        run: |
-          wasm_matrix="`cat build/wasm_matrix.json`"
-          echo wasm_matrix=$wasm_matrix >> $GITHUB_OUTPUT
-          echo `cat $GITHUB_OUTPUT`
+          make -C extension-ci-tools/scripts/extbuild test build -sj4
+          extension-ci-tools/scripts/extbuild/build/extbuild matrix \
+            --input extension-ci-tools/config/distribution_matrix.json \
+            --exclude "${{ inputs.exclude_archs }}" \
+            --opt-in "${{ inputs.opt_in_archs }}" \
+            --runners '${{ inputs.runners }}' \
+            --reduced-ci-mode "${{ inputs.reduced_ci_mode }}" \
+            --out "$GITHUB_OUTPUT"
+          echo "extbuild matrix output:"
+          cat "$GITHUB_OUTPUT"
 
   linux:
-    name: Linux
-    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.duckdb_arch }}
+    runs-on: ${{ startsWith(matrix.runner, '[') && fromJSON(matrix.runner) || matrix.runner }}
     needs: generate_matrix
     if: ${{ needs.generate_matrix.outputs.linux_matrix != '{}' && needs.generate_matrix.outputs.linux_matrix != '' }}
     strategy:
+      fail-fast: ${{ inputs.reduced_ci_mode != 'disabled' }}
       matrix: ${{fromJson(needs.generate_matrix.outputs.linux_matrix)}}
     env:
       # VCPKG config
@@ -256,7 +275,7 @@ jobs:
       - name: Free disk space 1
         uses: endersonmenezes/free-disk-space@v2.1.1
         continue-on-error: true
-        if: inputs.run_disk_clean_step
+        if: ${{ inputs.run_disk_clean_step && env.USE_DEFAULT_RUNNERS == 'true' }}
         with:
 #          remove_android: true # ~9.5GB in #52s
 #          remove_dotnet: true
@@ -269,7 +288,7 @@ jobs:
 
       - name: Free disk space 2
         continue-on-error: true
-        if: inputs.run_disk_clean_step
+        if: ${{ inputs.run_disk_clean_step && env.USE_DEFAULT_RUNNERS == 'true' }}
         run: |
           docker images -a -q > package.list
           if [ -s package.list ]; then
@@ -281,18 +300,22 @@ jobs:
           rm package.list
 
       - name: Restart docker to run on /mnt
+        if: ${{ env.USE_DEFAULT_RUNNERS == 'true' }}
         run: |
           sudo systemctl stop docker
 
       - name: Configure Docker with custom data directory
+        if: ${{ env.USE_DEFAULT_RUNNERS == 'true' }}
         run: |
           sudo mkdir -p /mnt/docker-data
           echo '{ "data-root": "/mnt/docker-data" }' | sudo tee /etc/docker/daemon.json
 
       - name: Start Docker with updated storage path
+        if: ${{ env.USE_DEFAULT_RUNNERS == 'true' }}
         run: sudo systemctl start docker
 
       - name: Verify Docker storage path
+        if: ${{ env.USE_DEFAULT_RUNNERS == 'true' }}
         run: docker info | grep "Docker Root Dir"
 
       - uses: actions/checkout@v4
@@ -361,6 +384,7 @@ jobs:
             --build-arg 'vcpkg_url=${{ inputs.vcpkg_url }}' \
             --build-arg 'vcpkg_commit=${{ inputs.vcpkg_commit }}' \
             --build-arg 'extra_toolchains=${{ inputs.enable_rust  && format(';{0};rust;', inputs.extra_toolchains) || format(';{0};', inputs.extra_toolchains) }}' \
+            --build-arg 'cuda_version=${{ inputs.cuda_version }}' \
             -t duckdb/${{ matrix.duckdb_arch }} \
             ./extension-ci-tools/docker/${{ matrix.duckdb_arch }}
 
@@ -375,8 +399,10 @@ jobs:
           AWS_DEFAULT_REGION=${{ secrets.VCPKG_CACHING_AWS_DEFAULT_REGION }}
           AWS_REQUEST_CHECKSUM_CALCULATION=when_required
           VCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_target_triplet }}
-          VCPKG_OVERLAY_TRIPLETS=/duckdb_build_dir/extensions-ci-tools/toolchains
-          VCPKG_OVERLAY_PORTS=/duckdb_build_dir/extension-ci-tools/vcpkg_ports
+          VCPKG_OVERLAY_TRIPLETS=/duckdb_build_dir/${{ inputs.vcpkg_overlay_triplets }}
+          VCPKG_OVERLAY_PORTS=/duckdb_build_dir/${{ inputs.vcpkg_overlay_ports }}
+          CUDAARCHS=${{ inputs.cuda_archs }}
+          VCPKG_CUDA_VERSION=${{ inputs.cuda_version }}
           BUILD_SHELL=${{ inputs.build_duckdb_shell && '1' || '0' }}
           OPENSSL_ROOT_DIR=/duckdb_build_dir/build/${{ inputs.build_type }}/vcpkg_installed/${{ matrix.vcpkg_target_triplet }}
           OPENSSL_DIR=/duckdb_build_dir/build/${{ inputs.build_type }}/vcpkg_installed/${{ matrix.vcpkg_target_triplet }}
@@ -388,6 +414,8 @@ jobs:
           EXTENSION_NAME=${{ inputs.extension_name }}
           EXTENSION_CANONICAL=${{ inputs.extension_canonical }}
           LINUX_CI_IN_DOCKER=1
+          GITHUB_ACTIONS=true
+          CI=true
           CCACHE_MAXSIZE=1G
           CCACHE_NOCOMPRESS=1
           SUBSET_EXTENSIONS_TESTS=${{ inputs.extensions_test_selection }}
@@ -395,11 +423,8 @@ jobs:
           echo '${{ inputs.test_config }}'| jq -r '.test_env_variables // {} | to_entries | map("\(.key)=\(.value)")|.[]' >> docker_env.txt
 
       - name: Generate timestamp for Ccache entry
-        shell: cmake -P {0}
         id: ccache_timestamp
-        run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
-          message("::set-output name=timestamp::${current_date}")
+        run: echo "timestamp=$(date -u '+%Y-%m-%d-%H;%M;%S')" >> "$GITHUB_OUTPUT"
 
       - name: Create Ccache directory
         run: |
@@ -451,6 +476,13 @@ jobs:
         run: |
           docker run --env-file=docker_env.txt -v `pwd`:/duckdb_build_dir -v `pwd`/ccache_dir:/ccache_dir duckdb/${{ matrix.duckdb_arch }} make ${{ inputs.build_type }}
 
+      - name: Run post build command
+        if: ${{ inputs.post_build_command != '' }}
+        shell: bash
+        env:
+          MATRIX_RUNNER: ${{ matrix.runner }}
+        run: ${{ inputs.post_build_command }}
+
       - name: Save Ccache
         if: ${{ inputs.save_cache }}
         uses: actions/cache/save@v4
@@ -492,15 +524,19 @@ jobs:
       - name: Print Rust logs
         if: ${{ inputs.rust_logs && (inputs.enable_rust || contains(format(';{0};', inputs.extra_toolchains), ';rust;')) }}
         run: |
-          for filename in build/${{ inputs.build_type }}/rust/src/*/*build-*.log; do
-            echo Printing logs for file $filename
-            cat $filename;
-            echo Done printing logs for $filename
-          done
+          if find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0 | grep -qz .; then
+            while IFS= read -r -d '' filename; do
+              echo "Printing logs for file $filename"
+              cat "$filename"
+              echo "Done printing logs for $filename"
+            done < <(find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0)
+          else
+            echo "No Rust build logs found under build/${{ inputs.build_type }}/rust/src/"
+          fi
 
   macos:
-    name: MacOS
-    runs-on: macos-latest
+    name: ${{ matrix.duckdb_arch }}
+    runs-on: ${{ startsWith(matrix.runner, '[') && fromJSON(matrix.runner) || matrix.runner }}
     needs:
       - generate_matrix
       - linux
@@ -510,8 +546,9 @@ jobs:
       needs.generate_matrix.outputs.osx_matrix != '{}' &&
       needs.generate_matrix.outputs.osx_matrix != '' &&
       needs.generate_matrix.result == 'success' &&
-      (needs.linux.result == 'success' || needs.linux.result == 'skipped')
+      (inputs.reduced_ci_mode == 'disabled' || needs.linux.result == 'success' || needs.linux.result == 'skipped')
     strategy:
+      fail-fast: ${{ inputs.reduced_ci_mode != 'disabled' }}
       matrix: ${{fromJson(needs.generate_matrix.outputs.osx_matrix)}}
     env:
       # VCPKG config
@@ -740,15 +777,19 @@ jobs:
       - name: Print Rust logs
         if: ${{ inputs.rust_logs && (inputs.enable_rust || contains(format(';{0};', inputs.extra_toolchains), ';rust;')) }}
         run: |
-          for filename in build/${{ inputs.build_type }}/rust/src/*/*build-*.log; do
-            echo Printing logs for file $filename
-            cat $filename;
-            echo Done printing logs for $filename
-          done
+          if find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0 | grep -qz .; then
+            while IFS= read -r -d '' filename; do
+              echo "Printing logs for file $filename"
+              cat "$filename"
+              echo "Done printing logs for $filename"
+            done < <(find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0)
+          else
+            echo "No Rust build logs found under build/${{ inputs.build_type }}/rust/src/"
+          fi
 
   windows:
-    name: Windows
-    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.duckdb_arch }}
+    runs-on: ${{ startsWith(matrix.runner, '[') && fromJSON(matrix.runner) || matrix.runner }}
     needs:
       - generate_matrix
       - linux
@@ -758,8 +799,9 @@ jobs:
       needs.generate_matrix.outputs.windows_matrix != '{}' &&
       needs.generate_matrix.outputs.windows_matrix != '' &&
       needs.generate_matrix.result == 'success' &&
-      (needs.linux.result == 'success' || needs.linux.result == 'skipped')
+      (inputs.reduced_ci_mode == 'disabled' || needs.linux.result == 'success' || needs.linux.result == 'skipped')
     strategy:
+      fail-fast: ${{ inputs.reduced_ci_mode != 'disabled' }}
       matrix: ${{fromJson(needs.generate_matrix.outputs.windows_matrix)}}
     env:
       # VCPKG config
@@ -1023,11 +1065,15 @@ jobs:
         if: ${{ inputs.rust_logs && (inputs.enable_rust || contains(format(';{0};', inputs.extra_toolchains), ';rust;')) }}
         shell: bash
         run: |
-          for filename in build/${{ inputs.build_type }}/rust/src/*/*build-*.log; do
-            echo Printing logs for file $filename
-            cat $filename;
-            echo Done printing logs for $filename
-          done
+          if find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0 | grep -qz .; then
+            while IFS= read -r -d '' filename; do
+              echo "Printing logs for file $filename"
+              cat "$filename"
+              echo "Done printing logs for $filename"
+            done < <(find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0)
+          else
+            echo "No Rust build logs found under build/${{ inputs.build_type }}/rust/src/"
+          fi
 
       - name: Move rtools supplied zstd out of the way, so ccache can work
         if: (matrix.duckdb_arch == 'windows_amd64_rtools' || matrix.duckdb_arch == 'windows_amd64_mingw')
@@ -1036,8 +1082,8 @@ jobs:
           mv C:\rtools42\usr\bin\zstd.exe C:\rtools42\usr\bin\zstd-rtools.exe
 
   wasm:
-    name: DuckDB-Wasm
-    runs-on: ubuntu-latest
+    name: ${{ matrix.duckdb_arch }}
+    runs-on: ${{ startsWith(matrix.runner, '[') && fromJSON(matrix.runner) || matrix.runner }}
     needs:
       - generate_matrix
       - linux
@@ -1047,8 +1093,9 @@ jobs:
       needs.generate_matrix.outputs.wasm_matrix != '{}' &&
       needs.generate_matrix.outputs.wasm_matrix != '' &&
       needs.generate_matrix.result == 'success' &&
-      (needs.linux.result == 'success' || needs.linux.result == 'skipped')
+      (inputs.reduced_ci_mode == 'disabled' || needs.linux.result == 'success' || needs.linux.result == 'skipped')
     strategy:
+      fail-fast: ${{ inputs.reduced_ci_mode != 'disabled' }}
       matrix: ${{fromJson(needs.generate_matrix.outputs.wasm_matrix)}}
     env:
       VCPKG_TARGET_TRIPLET: ${{ matrix.vcpkg_target_triplet }}
@@ -1217,8 +1264,12 @@ jobs:
         if: ${{ inputs.rust_logs && (inputs.enable_rust || contains(format(';{0};', inputs.extra_toolchains), ';rust;')) }}
         shell: bash
         run: |
-          for filename in build/${{ inputs.build_type }}/rust/src/*/*build-*.log; do
-            echo Printing logs for file $filename
-            cat $filename;
-            echo Done printing logs for $filename
-          done
+          if find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0 | grep -qz .; then
+            while IFS= read -r -d '' filename; do
+              echo "Printing logs for file $filename"
+              cat "$filename"
+              echo "Done printing logs for $filename"
+            done < <(find "build/${{ inputs.build_type }}/rust/src/" -type f -name '*build-*.log' -print0)
+          else
+            echo "No Rust build logs found under build/${{ inputs.build_type }}/rust/src/"
+          fi
